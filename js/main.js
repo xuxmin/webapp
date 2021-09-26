@@ -8,6 +8,7 @@ var controls = {
     light_res: 16,
     mask_h: 200,
     light_h : 200,
+    scale: 1.5,
 };
 
 function draw_line(context, origin, p0, p1) {
@@ -31,9 +32,11 @@ function draw_line(context, origin, p0, p1) {
         context.lineTo(origin[0] + x, origin[1]);
     }
     else {
+        light_h = controls.light_h * controls.scale;
+
         // 计算直线与 y = light_h 的交点
-        x = (controls.light_h - p0[1]) / (p1[1] - p0[1]) * (p1[0] - p0[0]) + p0[0]
-        context.lineTo(origin[0] + x, origin[1] - controls.light_h);
+        x = (light_h - p0[1]) / (p1[1] - p0[1]) * (p1[0] - p0[0]) + p0[0]
+        context.lineTo(origin[0] + x, origin[1] - light_h);
     }
 
     context.closePath();
@@ -43,14 +46,22 @@ function draw_line(context, origin, p0, p1) {
 function draw() {
     // 拿到画板
     var canvas = document.getElementById('canvas');
-    canvas.width = 800;
-    canvas.height = 500;
+    canvas.width = 1400;
+    canvas.height = 680;
+
+    valid_volume = 50;
+
+    light_pos = controls.light_pos * controls.scale;
+    mask_pos = controls.mask_pos * controls.scale;
+    light_h = controls.light_h * controls.scale;
+    mask_h = controls.mask_h * controls.scale;
+    valid_volume = valid_volume * controls.scale;
  
     // 拿到上下文
     var context = canvas.getContext('2d');
 
     // 设置坐标系原点
-    var origin = [500, 400];
+    var origin = [700, 600];
 
     // 绘制坐标系
     context.strokeStyle = 'red';
@@ -58,7 +69,7 @@ function draw() {
     // x 轴
     context.beginPath();
     context.moveTo(0, origin[1]);
-    context.lineTo(800, origin[1]);
+    context.lineTo(canvas.width, origin[1]);
     context.closePath();
     context.stroke();
     // y 轴
@@ -71,34 +82,34 @@ function draw() {
     context.strokeStyle = 'green';
     context.lineWidth = 5;
     context.beginPath();
-    context.moveTo(origin[0] + controls.light_pos, origin[1]);
-    context.lineTo(origin[0] + controls.light_pos, origin[1] - controls.light_h);
+    context.moveTo(origin[0] + light_pos, origin[1]);
+    context.lineTo(origin[0] + light_pos, origin[1] - light_h);
     context.closePath();
     context.stroke();
     // mask
     context.strokeStyle = 'green';
     context.lineWidth = 5;
     context.beginPath();
-    context.moveTo(origin[0] + controls.mask_pos, origin[1]);
-    context.lineTo(origin[0] + controls.mask_pos, origin[1] - controls.mask_h);
+    context.moveTo(origin[0] + mask_pos, origin[1]);
+    context.lineTo(origin[0] + mask_pos, origin[1] - mask_h);
     context.closePath();
     context.stroke();
     // valid volume
     context.strokeStyle = 'blue';
     context.lineWidth = 5;
     context.beginPath();
-    context.moveTo(origin[0] - 50, origin[1]);
-    context.lineTo(origin[0] + 50, origin[1]);
-    context.lineTo(origin[0] + 50, origin[1]-50);
-    context.lineTo(origin[0] - 50, origin[1]-50);
+    context.moveTo(origin[0] - valid_volume, origin[1]);
+    context.lineTo(origin[0] + valid_volume, origin[1]);
+    context.lineTo(origin[0] + valid_volume, origin[1]-valid_volume);
+    context.lineTo(origin[0] - valid_volume, origin[1]-valid_volume);
     context.closePath();
     context.stroke();
 
-    for (var i = controls.light_h; i >= 0; i -= controls.light_h / (controls.light_res - 1) - 0.5) {
-        for (var j = controls.mask_h; j >= 0; j -= controls.mask_h / (controls.mask_res - 1) - 0.5) {
+    for (var i = light_h; i >= 0; i -= light_h / (controls.light_res - 1) - 0.5) {
+        for (var j = mask_h; j >= 0; j -= mask_h / (controls.mask_res - 1) - 0.5) {
             draw_line(context, origin, 
-                        [parseInt(controls.light_pos), i], 
-                        [parseInt(controls.mask_pos), j]);
+                        [parseInt(light_pos), i], 
+                        [parseInt(mask_pos), j]);
         }
     }
 
@@ -114,6 +125,7 @@ const initGUI = (gui) => {
     gui.add(controls, 'light_res', 0, 32).step(1);
     gui.add(controls, 'mask_h', 100, 300).step(1);
     gui.add(controls, 'light_h', 100, 400).step(1);
+    gui.add(controls, 'scale', 1, 5).step(0.1);
     return gui;
 }
 
